@@ -1,4 +1,4 @@
-from reader import OculusReader
+from reader  import OculusReader
 from tf_transformations import quaternion_from_matrix
 import rclpy
 from rclpy.node import Node
@@ -33,6 +33,8 @@ class OculusReaderNode(Node):
         self.create_subscription(Float64MultiArray, '/R_haptic_amplitude', self.right_haptic_callback, 10)
 
         # publisher
+        self.robotiq_l = self.create_publisher(Float64MultiArray, '/L_gripper_forward_position_controller/commands', 10)
+        self.robotiq_r = self.create_publisher(Float64MultiArray, '/R_gripper_forward_position_controller/commands', 10)
         self.buttons_pub = self.create_publisher(String, '/controller_button_state', 10)
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
@@ -121,69 +123,72 @@ class OculusReaderNode(Node):
 
         if buttons['A'] and not self.button_triggered_dict['A']:
             self.button_triggered_dict['A'] = True
-            if self.tele_cli.wait_for_service(timeout_sec=1.0):
-                req = SetBool.Request()
-                req.data = True
-                result = self.tele_cli.call(req)
-                self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
-            else:
-                self.get_logger().error('Service not available')
+            # if self.tele_cli.wait_for_service(timeout_sec=1.0):
+            #     req = SetBool.Request()
+            #     req.data = True
+            #     result = self.tele_cli.call(req)
+            #     self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
+            # else:
+            #     self.get_logger().error('Service not available')
         elif not buttons['A'] and self.button_triggered_dict['A']:
             self.button_triggered_dict['A'] = False
 
         if buttons['B'] and not self.button_triggered_dict['B']:
             self.button_triggered_dict['B'] = True
-            if self.tele_cli.wait_for_service(timeout_sec=1.0):
-                req = SetBool.Request()
-                req.data = False
-                result = self.tele_cli.call(req)
-                self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
-            else:
-                self.get_logger().error('Service not available')
+            # if self.tele_cli.wait_for_service(timeout_sec=1.0):
+            #     req = SetBool.Request()
+            #     req.data = False
+            #     result = self.tele_cli.call(req)
+            #     self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
+            # else:
+            #     self.get_logger().error('Service not available')
         elif not buttons['B'] and self.button_triggered_dict['B']:
             self.button_triggered_dict['B'] = False
 
         if buttons['X'] and not self.button_triggered_dict['X']:
             self.button_triggered_dict['X'] = True
             # for starting a new episode
-            if self.dataset_record_cli.wait_for_service(timeout_sec=1.0):
-                req = Trigger.Request()
-                result = self.dataset_record_cli.call(req)
-                self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
-            else:
-                self.get_logger().error('Service not available')
+            # if self.dataset_record_cli.wait_for_service(timeout_sec=1.0):
+            #     req = Trigger.Request()
+            #     result = self.dataset_record_cli.call(req)
+            #     self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
+            # else:
+            #     self.get_logger().error('Service not available')
         elif not buttons['X'] and self.button_triggered_dict['X']:
             self.button_triggered_dict['X'] = False
 
         if buttons['Y'] and not self.button_triggered_dict['Y']:
             self.button_triggered_dict['Y'] = True
             # for stopping and saving current episode
-            if self.dataset_stop_cli.wait_for_service(timeout_sec=1.0):
-                req = SetBool.Request()
-                req.data = True
-                result = self.dataset_stop_cli.call(req)
-                self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
-            else:
-                self.get_logger().error('Service not available')
+            # if self.dataset_stop_cli.wait_for_service(timeout_sec=1.0):
+            #     req = SetBool.Request()
+            #     req.data = True
+            #     result = self.dataset_stop_cli.call(req)
+            #     self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
+            # else:
+            #     self.get_logger().error('Service not available')
         elif not buttons['Y'] and self.button_triggered_dict['Y']:
             self.button_triggered_dict['Y'] = False
 
         if buttons['LJ'] and not self.button_triggered_dict['LJ']:
             self.button_triggered_dict['LJ'] = True
             # dispose current episode
-            if self.dataset_stop_cli.wait_for_service(timeout_sec=1.0):
-                req = SetBool.Request()
-                req.data = False
-                result = self.dataset_stop_cli.call(req)
-                self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
-            else:
-                self.get_logger().error('Service not available')
+            # if self.dataset_stop_cli.wait_for_service(timeout_sec=1.0):
+            #     req = SetBool.Request()
+            #     req.data = False
+            #     result = self.dataset_stop_cli.call(req)
+            #     self.get_logger().info(f'Result of service call: {result.success}, message: {result.message}')
+            # else:
+            #     self.get_logger().error('Service not available')
         elif not buttons['LJ'] and self.button_triggered_dict['LJ']:
             self.button_triggered_dict['LJ'] = False
 
         # gripper control
         if buttons['LTr'] and not self.button_triggered_dict['LTr']:
             self.button_triggered_dict['LTr'] = True
+            # msg = Float64MultiArray()
+            # msg.data = [0.]  # close
+            # self.robotiq_l.publish(msg)
         elif not buttons['LTr'] and self.button_triggered_dict['LTr']:
             self.button_triggered_dict['LTr'] = False
 
@@ -195,6 +200,9 @@ class OculusReaderNode(Node):
 
         if buttons['RTr'] and not self.button_triggered_dict['RTr']:
             self.button_triggered_dict['RTr'] = True
+            # msg = Float64MultiArray()
+            # msg.data = [0.]  # close
+            # self.robotiq_r.publish(msg)
         elif not buttons['RTr'] and self.button_triggered_dict['RTr']:
             self.button_triggered_dict['RTr'] = False
 
@@ -204,6 +212,7 @@ class OculusReaderNode(Node):
         elif not buttons['RG'] and self.button_triggered_dict['RG']:
             self.button_triggered_dict['RG'] = False
 
+        # if buttons['rightJS'][0] > 0.8 and not self.button_triggered_dict['rightJS']:
         if abs(buttons['rightJS'][0]) > 0.0:
             self.button_triggered_dict['rightJS'] = True
 
@@ -233,6 +242,7 @@ class OculusReaderNode(Node):
         if buttons['leftGrip'][0] > 0.1:
             self.button_triggered_dict['leftGrip'] = True
             msg = Float64MultiArray()
+            # msg.data = [0.8]  # close
             msg.data = [buttons['leftGrip'][0]]  # scale by trigger pressure
             self.robotiq_l.publish(msg)
         elif buttons['leftGrip'][0] < 0.1 and self.button_triggered_dict['leftGrip']:
