@@ -267,20 +267,21 @@ class OculusReaderNode(Node):
         t.transform.translation.y = translation[0]
         t.transform.translation.z = translation[1]
 
-        rot_m = np.array([[transform[0][0], transform[0][1], transform[0][2],],
-                          [transform[1][0], transform[1][1], transform[1][2],],
-                          [transform[2][0], transform[2][1], transform[2][2]]])
+        rot_m = transform[:3, :3]
         if abs(rot_m.sum()) < 1e-6:
             return t, False
         quat = quaternion_from_matrix(transform)
         quat = np.array([quat[1], quat[0], -quat[2], quat[3]])
-        
-        # using scipy rotate quat as x 180 deg and y 90 deg
+
+        # flip roll and pitch direction while keeping the axes unchanged
         r = Rotation.from_quat(quat)
         r2 = Rotation.from_euler('x', 180, degrees=True)
         r3 = Rotation.from_euler('y', -90, degrees=True)
         r_final = r3 * r2 * r
-        quat = r_final.as_quat()
+        euler = r_final.as_euler('xyz', degrees=True)
+        euler[0] = -euler[0]
+        euler[1] = -euler[1]
+        quat = Rotation.from_euler('xyz', euler, degrees=True).as_quat()
        
 
         t.transform.rotation.x = quat[0]
